@@ -14,7 +14,7 @@ export class TTSService {
       if (!text || text.trim().length === 0) return null;
       const cleanText = text.trim().substring(0, 200);
       const port = process.env.PORT || 5000;
-      const baseUrl = process.env.SERVER_URL || `http://localhost:${port}`;
+      const baseUrl = process.env.SERVER_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
       return `${baseUrl}/api/tts?text=${encodeURIComponent(cleanText)}&lang=${lang}&slow=${slow}`;
     } catch (err) {
       console.error('[TTSService] Failed to generate TTS URL:', err.message);
