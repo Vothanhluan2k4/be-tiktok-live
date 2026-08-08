@@ -192,9 +192,38 @@ class TikTokConnectionManager {
     }
   }
 
+  _normalizeEventData(rawData) {
+    if (!rawData) return {};
+    const user = rawData.user || {};
+    
+    const nickname = rawData.nickname || user.nickname || rawData.uniqueId || user.uniqueId || 'Người xem';
+    const uniqueId = rawData.uniqueId || user.uniqueId || nickname;
+    const comment = rawData.comment || rawData.content || '';
+    const avatar = rawData.profilePictureUrl || user.profilePictureUrl || user.avatarThumb?.urlList?.[0] || '';
+    
+    const giftName = rawData.giftName || rawData.giftDetails?.giftName || rawData.gift?.giftName || rawData.describe || 'Quà';
+    const repeatCount = rawData.repeatCount || rawData.comboCount || 1;
+    const diamondCount = rawData.diamondCount || rawData.giftDetails?.diamondCount || 1;
+    const giftPictureUrl = rawData.giftPictureUrl || rawData.giftDetails?.giftImage?.urlList?.[0] || '';
+
+    return {
+      ...rawData,
+      nickname,
+      uniqueId,
+      comment,
+      text: comment,
+      profilePictureUrl: avatar,
+      giftName,
+      repeatCount,
+      diamondCount,
+      giftPictureUrl
+    };
+  }
+
   // --- Internal Event Handlers ---
 
-  _handleCommentEvent(overlayToken, data, io, overrideConfig = null, isTest = false) {
+  _handleCommentEvent(overlayToken, rawData, io, overrideConfig = null, isTest = false) {
+    const data = this._normalizeEventData(rawData);
     const sessionState = this.connections.get(overlayToken);
     const config = overrideConfig || sessionState?.config || {};
     const eventsEnabled = config.eventsEnabled || { comment: true };
@@ -215,7 +244,7 @@ class TikTokConnectionManager {
     this._emitToOverlay(overlayToken, io, {
       id: `comment_${Date.now()}_${Math.random()}`,
       type: 'comment',
-      user: data.nickname || data.uniqueId,
+      user: data.nickname,
       avatar: data.profilePictureUrl,
       text: data.comment,
       speechText: textToRead,
@@ -225,7 +254,8 @@ class TikTokConnectionManager {
     });
   }
 
-  _handleGiftEvent(overlayToken, data, io, overrideConfig = null, isTest = false) {
+  _handleGiftEvent(overlayToken, rawData, io, overrideConfig = null, isTest = false) {
+    const data = this._normalizeEventData(rawData);
     const sessionState = this.connections.get(overlayToken);
     const config = overrideConfig || sessionState?.config || {};
     const eventsEnabled = config.eventsEnabled || { gift: true };
@@ -248,11 +278,11 @@ class TikTokConnectionManager {
     this._emitToOverlay(overlayToken, io, {
       id: `gift_${Date.now()}_${Math.random()}`,
       type: 'gift',
-      user: data.nickname || data.uniqueId,
-      giftName: data.giftName || 'Quà',
-      repeatCount: data.repeatCount || 1,
+      user: data.nickname,
+      giftName: data.giftName,
+      repeatCount: data.repeatCount,
       giftPictureUrl: data.giftPictureUrl,
-      text: `${data.giftName} x${data.repeatCount || 1}`,
+      text: `${data.giftName} x${data.repeatCount}`,
       speechText: textToRead,
       audioUrl: audioUrl,
       volume: config.volume ?? 1,
@@ -260,7 +290,8 @@ class TikTokConnectionManager {
     });
   }
 
-  _handleFollowEvent(overlayToken, data, io, overrideConfig = null, isTest = false) {
+  _handleFollowEvent(overlayToken, rawData, io, overrideConfig = null, isTest = false) {
+    const data = this._normalizeEventData(rawData);
     const sessionState = this.connections.get(overlayToken);
     const config = overrideConfig || sessionState?.config || {};
     if (!config.eventsEnabled?.follow && !isTest) return;
@@ -273,7 +304,7 @@ class TikTokConnectionManager {
     this._emitToOverlay(overlayToken, io, {
       id: `follow_${Date.now()}_${Math.random()}`,
       type: 'follow',
-      user: data.nickname || data.uniqueId,
+      user: data.nickname,
       speechText: textToRead,
       audioUrl: audioUrl,
       volume: config.volume ?? 1,
@@ -281,7 +312,8 @@ class TikTokConnectionManager {
     });
   }
 
-  _handleLikeEvent(overlayToken, data, io, overrideConfig = null, isTest = false) {
+  _handleLikeEvent(overlayToken, rawData, io, overrideConfig = null, isTest = false) {
+    const data = this._normalizeEventData(rawData);
     const sessionState = this.connections.get(overlayToken);
     const config = overrideConfig || sessionState?.config || {};
     if (!config.eventsEnabled?.like && !isTest) return;
@@ -294,7 +326,7 @@ class TikTokConnectionManager {
     this._emitToOverlay(overlayToken, io, {
       id: `like_${Date.now()}_${Math.random()}`,
       type: 'like',
-      user: data.nickname || data.uniqueId,
+      user: data.nickname,
       speechText: textToRead,
       audioUrl: audioUrl,
       volume: config.volume ?? 1,
@@ -302,7 +334,8 @@ class TikTokConnectionManager {
     });
   }
 
-  _handleShareEvent(overlayToken, data, io, overrideConfig = null, isTest = false) {
+  _handleShareEvent(overlayToken, rawData, io, overrideConfig = null, isTest = false) {
+    const data = this._normalizeEventData(rawData);
     const sessionState = this.connections.get(overlayToken);
     const config = overrideConfig || sessionState?.config || {};
     if (!config.eventsEnabled?.share && !isTest) return;
@@ -313,7 +346,7 @@ class TikTokConnectionManager {
     this._emitToOverlay(overlayToken, io, {
       id: `share_${Date.now()}_${Math.random()}`,
       type: 'share',
-      user: data.nickname || data.uniqueId,
+      user: data.nickname,
       speechText: textToRead,
       audioUrl: audioUrl,
       volume: config.volume ?? 1,
