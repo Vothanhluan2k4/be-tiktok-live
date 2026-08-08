@@ -69,6 +69,10 @@ class TikTokConnectionManager {
         this._handleShareEvent(overlayToken, data, io);
       });
 
+      tiktokLiveConnection.on('member', (data) => {
+        this._handleMemberEvent(overlayToken, data, io);
+      });
+
       tiktokLiveConnection.on('streamEnd', () => {
         console.log(`[TikTokManager] Stream ended for @${cleanUsername}`);
         sessionState.status = 'offline';
@@ -189,6 +193,12 @@ class TikTokConnectionManager {
         nickname: testData.nickname || 'Nguyễn Kiều Anh'
       };
       this._handleLikeEvent(overlayToken, mockData, io, activeConfig, true);
+    } else if (eventType === 'member') {
+      mockData = {
+        uniqueId: testData.nickname || 'khach_moi',
+        nickname: testData.nickname || 'Minh Anh'
+      };
+      this._handleMemberEvent(overlayToken, mockData, io, activeConfig, true);
     }
   }
 
@@ -346,6 +356,26 @@ class TikTokConnectionManager {
     this._emitToOverlay(overlayToken, io, {
       id: `share_${Date.now()}_${Math.random()}`,
       type: 'share',
+      user: data.nickname,
+      speechText: textToRead,
+      audioUrl: audioUrl,
+      volume: config.volume ?? 1,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  _handleMemberEvent(overlayToken, rawData, io, overrideConfig = null, isTest = false) {
+    const data = this._normalizeEventData(rawData);
+    const sessionState = this.connections.get(overlayToken);
+    const config = overrideConfig || sessionState?.config || {};
+    if (!config.eventsEnabled?.member && !isTest) return;
+
+    const textToRead = TTSService.formatEventText('member', data, config);
+    const audioUrl = TTSService.generateAudioUrl(textToRead, { lang: config.language || 'vi' });
+
+    this._emitToOverlay(overlayToken, io, {
+      id: `member_${Date.now()}_${Math.random()}`,
+      type: 'member',
       user: data.nickname,
       speechText: textToRead,
       audioUrl: audioUrl,

@@ -66,6 +66,11 @@ export class TTSService {
         return shareTemplate.replace('{nickname}', nickname);
       }
       
+      case 'member': {
+        const memberTemplate = config.templates?.member || 'Chào mừng {nickname} đã vào phòng live';
+        return memberTemplate.replace('{nickname}', nickname);
+      }
+      
       default:
         return data.text || '';
     }

@@ -14,14 +14,16 @@ const overlayConfigSchema = new mongoose.Schema({
     gift: { type: Boolean, default: true },
     follow: { type: Boolean, default: true },
     like: { type: Boolean, default: false },
-    share: { type: Boolean, default: true }
+    share: { type: Boolean, default: true },
+    member: { type: Boolean, default: true }
   },
   templates: {
     comment: { type: String, default: '{nickname} nói: {text}' },
     gift: { type: String, default: 'Cảm ơn {nickname} đã tặng {count} {giftName}' },
     follow: { type: String, default: 'Cảm ơn {nickname} đã theo dõi kênh' },
     like: { type: String, default: '{nickname} đã thả tim' },
-    share: { type: String, default: 'Cảm ơn {nickname} đã chia sẻ buổi live' }
+    share: { type: String, default: 'Cảm ơn {nickname} đã chia sẻ buổi live' },
+    member: { type: String, default: 'Chào mừng {nickname} đã vào phòng live' }
   },
   blockedWords: [{ type: String }],
   isActive: { type: Boolean, default: true },
@@ -48,14 +50,16 @@ export const getDefaultConfig = (token = 'default-overlay-token') => {
       gift: true,
       follow: true,
       like: false,
-      share: true
+      share: true,
+      member: true
     },
     templates: {
       comment: '{nickname} nói: {text}',
       gift: 'Cảm ơn {nickname} đã tặng {count} {giftName}',
       follow: 'Cảm ơn {nickname} đã theo dõi kênh',
       like: '{nickname} đã thả tim',
-      share: 'Cảm ơn {nickname} đã chia sẻ buổi live'
+      share: 'Cảm ơn {nickname} đã chia sẻ buổi live',
+      member: 'Chào mừng {nickname} đã vào phòng live'
     },
     blockedWords: ['đụ', 'đám', 'dm', 'cl', 'vcl', 'dcm', 'chửi', 'lừa đảo'],
     isActive: true
