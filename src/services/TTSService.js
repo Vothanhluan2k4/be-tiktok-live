@@ -9,18 +9,12 @@ export class TTSService {
    */
   static generateAudioUrl(text, options = {}) {
     const lang = options.lang || 'vi';
-    const slow = options.speed === 'slow' || options.speed < 0.9;
+    const slow = (options.speed === 'slow' || options.speed < 0.9) ? 'true' : 'false';
     try {
       if (!text || text.trim().length === 0) return null;
-      // Truncate long text to max 200 chars for TTS stability
       const cleanText = text.trim().substring(0, 200);
-      const url = googleTTS.getAudioUrl(cleanText, {
-        lang: lang,
-        slow: slow,
-        host: 'https://translate.google.com',
-        timeout: 10000,
-      });
-      return url;
+      const port = process.env.PORT || 5000;
+      return `http://localhost:${port}/api/tts?text=${encodeURIComponent(cleanText)}&lang=${lang}&slow=${slow}`;
     } catch (err) {
       console.error('[TTSService] Failed to generate TTS URL:', err.message);
       return null;

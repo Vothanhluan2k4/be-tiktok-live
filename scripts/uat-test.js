@@ -62,7 +62,10 @@ async function runUAT() {
     assert(memberText === 'Chào mừng Linh đã vào phòng live', 'TTSService member enter template formatting');
 
     const ttsUrl = TTSService.generateAudioUrl(speechText);
-    assert(ttsUrl && ttsUrl.includes('translate.google.com'), 'TTSService audio URL generation');
+    assert(ttsUrl && ttsUrl.includes('/api/tts'), 'TTSService proxy audio URL generation');
+
+    const proxyRes = await request(`/api/tts?text=${encodeURIComponent('Xin chào')}&lang=vi`);
+    assert(proxyRes.status === 200, 'GET /api/tts returns audio stream 200 OK');
 
     const isBlocked = TTSService.isBlocked('đụ mẹ mày', ['đụ', 'dm']);
     assert(isBlocked === true, 'TTSService sensitive word blocking filter');

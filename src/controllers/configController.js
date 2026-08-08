@@ -1,3 +1,4 @@
+import * as googleTTS from 'google-tts-api';
 import { OverlayConfigModel, inMemoryConfigs, getDefaultConfig } from '../models/OverlayConfig.js';
 import { tikTokManager } from '../services/TikTokConnectionManager.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -69,5 +70,40 @@ export const generateNewToken = async (req, res) => {
     return res.json({ success: true, overlayToken: newToken, config: newConfig });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const proxyTTS = async (req, res) => {
+  const { text, lang = 'vi', slow = 'false' } = req.query;
+  if (!text) return res.status(400).send('Missing text parameter');
+
+  try {
+    const googleUrl = googleTTS.getAudioUrl(text.substring(0, 200), {
+      lang: lang,
+      slow: slow === 'true',
+      host: 'https://translate.google.com',
+      timeout: 10000,
+    });
+
+    const response = await fetch(googleUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Google TTS returned status ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(buffer);
+  } catch (err) {
+    console.error('[TTS Proxy Error]:', err.message);
+    return res.status(500).send(err.message);
   }
 };
