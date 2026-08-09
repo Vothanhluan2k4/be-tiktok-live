@@ -51,7 +51,33 @@ export const updateConfig = async (req, res) => {
     // Update runtime configuration inside active connection
     tikTokManager.updateConfig(token, updatedConfig);
 
-    return res.json({ success: true, config: updatedConfig, message: 'Đã lưu cấu hình thành công!' });
+    // Broadcast config update to Overlay via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      io.to(token).emit('config_updated', {
+        config: updatedConfig,
+        timestamp: new Date().toISOString()
+      });
+
+      if (req.body?.shouldReloadOverlay) {
+        io.to(token).emit('reload_overlay', { timestamp: new Date().toISOString() });
+      }
+    }
+
+    return res.json({ success: true, config: updatedConfig, message: 'Đã lưu cấu hình và đồng bộ Overlay thành công!' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const reloadOverlayClient = async (req, res) => {
+  try {
+    const token = req.params.token || req.body?.overlayToken || 'demo-overlay-token';
+    const io = req.app.get('io');
+    if (io) {
+      io.to(token).emit('reload_overlay', { timestamp: new Date().toISOString() });
+    }
+    return res.json({ success: true, message: 'Đã gửi lệnh tải lại Overlay!' });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }

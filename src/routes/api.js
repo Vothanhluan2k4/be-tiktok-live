@@ -1,5 +1,5 @@
 import express from 'express';
-import { getConfig, updateConfig, generateNewToken, proxyTTS } from '../controllers/configController.js';
+import { getConfig, updateConfig, generateNewToken, reloadOverlayClient, proxyTTS } from '../controllers/configController.js';
 import { startLiveConnection, stopLiveConnection, getConnectionStatus, triggerTestEvent } from '../controllers/connectionController.js';
 
 const router = express.Router();
@@ -9,6 +9,8 @@ router.get('/config', getConfig);
 router.get('/config/:token', getConfig);
 router.put('/config', updateConfig);
 router.put('/config/:token', updateConfig);
+router.post('/config/reload', reloadOverlayClient);
+router.post('/config/reload/:token', reloadOverlayClient);
 router.post('/config/generate-token', generateNewToken);
 router.get('/tts', proxyTTS);
 
